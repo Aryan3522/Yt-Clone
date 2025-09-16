@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 
 export const likeComment = async (req, res) => {
   const { userId, commentId } = req.body;
-  const commentData = req.body;
   try {
     const cmt = await comment.findById(commentId);
     if (!cmt) return res.status(404).json({ message: "Comment not found" });
@@ -51,10 +50,15 @@ export const likeComment = async (req, res) => {
 };
 export const disLikeComment = async (req, res) => {
   const { userId, commentId } = req.body;
-  const commentData = req.body;
   try {
     const cmt = await comment.findById(commentId);
     if (!cmt) return res.status(404).json({ message: "Comment not found" });
+    if (cmt.dislikes >= 2) {
+      await comment.findByIdAndDelete(cmt._id);
+      return res
+        .status(200)
+        .json({ message: "Comment deleted due to dislikes" });
+    }
     const alreadyDisLiked = cmt.dislikedUsers.some(
       (u) => u.toString() === userId
     );

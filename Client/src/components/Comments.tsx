@@ -78,7 +78,6 @@ const Comments = ({ videoId }: any) => {
   };
   const handleDisLike = async (comment: any) => {
     if (!user) return;
-    // console.log(comment._id);
     const res = await axiosInstance.post(`/comment/dislike/${comment._id}`, {
       userId: user?._id,
       commentId: comment._id,
@@ -135,45 +134,7 @@ const Comments = ({ videoId }: any) => {
   if (loading) {
     return <div>Loading comments...</div>;
   }
-  //   if (!user || !newComment.trim()) return;
-  //   setIsSubmitting(true);
-  //   try {
-  //     const res = await axiosInstance.post("/comment/postcomment", {
-  //       videoId: videoId,
-  //       userid: user._id,
-  //       commentbody: newComment,
-  //       usercommented: user.name,
-  //     });
-  //     if (res.data.comment) {
-  //       const newCommentObj: Comment = {
-  //         _id: Date.now().toString(),
-  //         videoid: videoId,
-  //         userid: user._id,
-  //         commentbody: newComment,
-  //         usercommented: user.name || "Anonymous",
-  //         commentedon: new Date().toISOString(),
-  //         likes: 0,
-  //         dislikes: 0,
-  //         isLiked: false,
-  //         isDisliked: false,
-  //       };
-  //       setComments([newCommentObj, ...comments]);
-  //     }
-  //     setNewComment("");
-  //   } catch (error) {
-  //     console.error("Error adding comment:", error);
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-
-  // const isValidComment = (text: string) => {
-  //   // \p{L} = any kind of letter from any language
-  //   // \p{N} = numbers (0-9, also other numeral systems)
-  //   // \s = whitespace
-  //   // + means one or more characters
-  //   return /^[\p{L}\p{N}\s]+$/u.test(text);
-  // };
+  
   const isValidComment = (text: string) => {
     // \p{L} = any letter in any language
     // \p{M} = marks (like accents, vowel signs in Hindi, etc.)
@@ -401,14 +362,6 @@ const Comments = ({ videoId }: any) => {
                     {formatDistanceToNow(new Date(comment.commentedon))} ago
                   </span>
                   {user?.email && <GetLocationAndLogin email={user.email} />}
-                  {/* {user?.email && (
-                    <div className="flex items-center gap-2">
-                      <span className="material-icons text-gray-500">
-                        location_on
-                      </span>
-                      <GetLocationAndLogin email={user.email} />
-                    </div>
-                  )} */}
                 </div>
 
                 {editingCommentId === comment._id ? (
