@@ -42,46 +42,46 @@ const Comments = ({ videoId }: any) => {
     // console.log(comment._id);
     const res = await axiosInstance.post(`/comment/like/${comment._id}`, {
       userId: user?._id,
-      commentId: comment._id
+      commentId: comment._id,
     });
     if (res.data.liked) {
       setComments((prev) =>
         prev.map((c) =>
           c._id === comment._id
-      ? {
-        ...c,
-        likes: c.likes + 1,
-        dislikes: res.data.disliked ? c.dislikes - 1 : c.dislikes,
-        isDisliked: false,
-        isLiked: res.data.liked,
-      }
-      : c
-    )
-  );
-  console.log("Liked", res.data);
-} else {
-  setComments((prev) =>
-    prev.map((c) =>
-      c._id === comment._id
-  ? {
-    ...c,
-    likes: c.likes - 1,
-    isDisliked: false,
-    isLiked: res.data.liked,
-  }
-  : c
-)
-);
-console.log("Liked", res.data);
-}
-loadComments();
-};
-const handleDisLike = async (comment: any) => {
-  if (!user) return;
-  // console.log(comment._id);
-  const res = await axiosInstance.post(`/comment/dislike/${comment._id}`, {
-    userId: user?._id,
-    commentId: comment._id
+            ? {
+                ...c,
+                likes: c.likes + 1,
+                dislikes: res.data.disliked ? c.dislikes - 1 : c.dislikes,
+                isDisliked: false,
+                isLiked: res.data.liked,
+              }
+            : c
+        )
+      );
+      console.log("Liked", res.data);
+    } else {
+      setComments((prev) =>
+        prev.map((c) =>
+          c._id === comment._id
+            ? {
+                ...c,
+                likes: c.likes - 1,
+                isDisliked: false,
+                isLiked: res.data.liked,
+              }
+            : c
+        )
+      );
+      console.log("Liked", res.data);
+    }
+    loadComments();
+  };
+  const handleDisLike = async (comment: any) => {
+    if (!user) return;
+    // console.log(comment._id);
+    const res = await axiosInstance.post(`/comment/dislike/${comment._id}`, {
+      userId: user?._id,
+      commentId: comment._id,
     });
 
     if (res.data.disliked) {
@@ -167,90 +167,104 @@ const handleDisLike = async (comment: any) => {
   //   }
   // };
 
+  // const isValidComment = (text: string) => {
+  //   // \p{L} = any kind of letter from any language
+  //   // \p{N} = numbers (0-9, also other numeral systems)
+  //   // \s = whitespace
+  //   // + means one or more characters
+  //   return /^[\p{L}\p{N}\s]+$/u.test(text);
+  // };
   const isValidComment = (text: string) => {
-  return /^[a-z A-Z 0-9]+$/.test(text);
-};
+    // \p{L} = any letter in any language
+    // \p{M} = marks (like accents, vowel signs in Hindi, etc.)
+    // \p{N} = numbers
+    // \s = spaces
+    // + = one or more characters
+    return /^[\p{L}\p{M}\p{N}\s]+$/u.test(text);
+  };
 
-const handleSubmitComment = async () => {
-  if (!user || !newComment.trim()) return;
+  const handleSubmitComment = async () => {
+    if (!user || !newComment.trim()) return;
 
-  const trimmedComment = newComment.trim();
-  if (!isValidComment(trimmedComment)) {
-    toast("Comments can contain only letters and numbers, no special characters.")
-    return;
-  }
+    const trimmedComment = newComment.trim();
+    if (!isValidComment(trimmedComment)) {
+      toast(
+        "Comments can contain only letters and numbers, no special characters."
+      );
+      return;
+    }
 
-  setIsSubmitting(true);
-  try {
-    const res = await axiosInstance.post("/comment/postcomment", {
-      videoId: videoId,
-      userid: user._id,
-      commentbody: trimmedComment,
-      usercommented: user.name,
-    });
-
-    if (res.data.comment) {
-      const newCommentObj: Comment = {
-        _id: Date.now().toString(),
-        videoid: videoId,
+    setIsSubmitting(true);
+    try {
+      const res = await axiosInstance.post("/comment/postcomment", {
+        videoId: videoId,
         userid: user._id,
         commentbody: trimmedComment,
-        usercommented: user.name || "Anonymous",
-        commentedon: new Date().toISOString(),
-        likes: 0,
-        dislikes: 0,
-        isLiked: false,
-        isDisliked: false,
-      };
-      setComments([newCommentObj, ...comments]);
+        usercommented: user.name,
+      });
+
+      if (res.data.comment) {
+        const newCommentObj: Comment = {
+          _id: Date.now().toString(),
+          videoid: videoId,
+          userid: user._id,
+          commentbody: trimmedComment,
+          usercommented: user.name || "Anonymous",
+          commentedon: new Date().toISOString(),
+          likes: 0,
+          dislikes: 0,
+          isLiked: false,
+          isDisliked: false,
+        };
+        setComments([newCommentObj, ...comments]);
+      }
+      setNewComment("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    } finally {
+      setIsSubmitting(false);
     }
-    setNewComment("");
-  } catch (error) {
-    console.error("Error adding comment:", error);
-  } finally {
-    setIsSubmitting(false);
-  }
-  loadComments()
-};
+    loadComments();
+  };
 
-const handleEdit = (comment: Comment) => {
-  // console.log(comment);
-  setEditingCommentId(comment._id);
-  setEditText(comment.commentbody);
-};
+  const handleEdit = (comment: Comment) => {
+    // console.log(comment);
+    setEditingCommentId(comment._id);
+    setEditText(comment.commentbody);
+  };
 
-const handleUpdateComment = async () => {
-  if (!editText.trim()) return;
-  try {
-    const res = await axiosInstance.post(
-      `/comment/editcomment/${editingCommentId}`,
-      { commentbody: editText }
-    );
-    if (res.data) {
-      setComments((prev) =>
-        prev.map((c) =>
-          c._id === editingCommentId ? { ...c, commentbody: editText } : c
-    )
-  );
-  setEditingCommentId(null);
-  setEditText("");
-}
-} catch (error) {
-  console.log(error);
-}
-};
-
-const handleDelete = async (id: string) => {
-  console.log("delete clicked")
-  try {
-    const res = await axiosInstance.delete(`/comment/deletecomment/${id}`);
-    if (res.data.comment) {
-      setComments((prev) => prev.filter((c) => c._id !== id));
+  const handleUpdateComment = async () => {
+    if (!editText.trim()) return;
+    try {
+      const res = await axiosInstance.post(
+        `/comment/editcomment/${editingCommentId}`,
+        { commentbody: editText }
+      );
+      if (res.data) {
+        setComments((prev) =>
+          prev.map((c) =>
+            c._id === editingCommentId ? { ...c, commentbody: editText } : c
+          )
+        );
+        setEditingCommentId(null);
+        setEditText("");
+      }
+    } catch (error) {
+      console.log(error);
     }
-  } catch (error) {
-    console.log(error);
-  }
-  loadComments()
+  };
+
+  const handleDelete = async (id: string) => {
+    console.log("delete clicked");
+    try {
+      const res = await axiosInstance.delete(`/comment/deletecomment/${id}`);
+      if (res.data.comment) {
+        setComments((prev) => prev.filter((c) => c._id !== id));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    loadComments();
   };
 
   const translateTextComment = async (targetLang: string) => {
@@ -273,7 +287,6 @@ const handleDelete = async (id: string) => {
     Spanish: "es",
     French: "fr",
     German: "de",
-    Chinese: "zh",
     Japanese: "ja",
     Korean: "ko",
     Russian: "ru",
@@ -357,7 +370,9 @@ const handleDelete = async (id: string) => {
               <Button
                 onClick={handleSubmitComment}
                 disabled={!newComment.trim() || isSubmitting}
-                onKeyDown={(e) => { if(e.key === 'Enter') handleSubmitComment(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSubmitComment();
+                }}
               >
                 Comment
               </Button>
@@ -385,7 +400,15 @@ const handleDelete = async (id: string) => {
                   <span className="text-xs text-gray-600">
                     {formatDistanceToNow(new Date(comment.commentedon))} ago
                   </span>
-                  {/* {user?.email && <GetLocationAndLogin email={user.email} />} */}
+                  {user?.email && <GetLocationAndLogin email={user.email} />}
+                  {/* {user?.email && (
+                    <div className="flex items-center gap-2">
+                      <span className="material-icons text-gray-500">
+                        location_on
+                      </span>
+                      <GetLocationAndLogin email={user.email} />
+                    </div>
+                  )} */}
                 </div>
 
                 {editingCommentId === comment._id ? (
@@ -469,13 +492,13 @@ const handleDelete = async (id: string) => {
                           onClick={() => {
                             handleDisLike(comment);
                           }}
-                          >
+                        >
                           <ThumbsDown
                             className={`w-4 h-4 mr-0 ${
                               comment.dislikes ? "fill-gray-500" : ""
                             }`}
-                            />
-                            {comment?.dislikes || 0}
+                          />
+                          {comment?.dislikes || 0}
                         </Button>
                       </div>
                     </div>

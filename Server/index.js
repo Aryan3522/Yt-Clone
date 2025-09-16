@@ -11,7 +11,7 @@ import WatchLaterRoutes from "./routes/watchLater.js";
 import HistoryRoutes from "./routes/history.js";
 import commentRoutes from "./routes/comment.js";
 import translateRoute from "./routes/translate.js";
-import getLocationRoutes from "./routes/getGeoCode.js"
+import LocationRoutes from "./routes/getGeoCode.js"
 
 dotenv.config();
 
@@ -33,7 +33,7 @@ app.use("/watch", WatchLaterRoutes);
 app.use("/history", HistoryRoutes);
 app.use("/comment", commentRoutes);
 app.use("/api", translateRoute);
-app.get('/location', getLocationRoutes);
+app.use('/location', LocationRoutes);
 
 
 const PORT = process.env.PORT || 5000;
